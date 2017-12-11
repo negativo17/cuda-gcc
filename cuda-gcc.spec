@@ -9,7 +9,7 @@
 
 Name:           cuda-gcc
 Version:        6.4.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        GNU Compiler Collection CUDA compatibility package
 License:        GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
 URL:            http://gcc.gnu.org
@@ -89,6 +89,8 @@ export CXXFLAGS=`echo %{optflags} | sed -e 's/-Werror=format-security//g'`
 %configure \
     --build=%{gcc_target_platform} \
     --disable-bootstrap \
+    --disable-libquadmath \
+    --disable-libquadmath-support \
     --disable-libssp \
     --disable-multilib \
     --disable-shared \
@@ -116,7 +118,7 @@ mv %{buildroot}%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include-fixed/*.
 
 rm -fr \
     %{buildroot}%{_datadir}/locale \
-    %{buildroot}%{_infodir}/{dir,libgomp.info,libitm.info,libquadmath.info}* \
+    %{buildroot}%{_infodir}/{dir,libgomp.info,libitm.info}* \
     %{buildroot}%{_mandir}/man7/{fsf-funding,gfdl,gpl}* \
     %{buildroot}%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include-fixed \
     %{buildroot}%{_libdir}/gcc/%{gcc_target_platform}/%{version}/install-tools \
@@ -313,9 +315,6 @@ rm -f %{buildroot}%{_bindir}/%{gcc_target_platform}-*
 %{_libexecdir}/gcc/%{gcc_target_platform}/%{version}/f951
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libgfortran.a
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libgfortran.spec
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libquadmath.a
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/quadmath.h
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/quadmath_weak.h
 
 %files gdb-plugin
 %{_libdir}/libcc1.so*
@@ -329,5 +328,8 @@ rm -f %{buildroot}%{_bindir}/%{gcc_target_platform}-*
 %{_libexecdir}/gcc/%{gcc_target_platform}/%{version}/plugin
 
 %changelog
+* Mon Dec 11 2017 Simone Caronni <negativo17@gmail.com> - 6.4.0-2
+- Disable quadmath support.
+
 * Tue Oct 10 2017 Simone Caronni <negativo17@gmail.com> - 6.4.0-1
 - First build.
