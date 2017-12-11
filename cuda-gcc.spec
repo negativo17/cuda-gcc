@@ -7,9 +7,12 @@
 %global mpfr_version 2.4.2
 %global binary_prefix cuda-
 
+%global __provides_exclude_from (%{_libdir}|%{_libexecdir})/gcc/%{gcc_target_platform}/%{version}/
+%global __requires_exclude_from (%{_libdir}|%{_libexecdir})/gcc/%{gcc_target_platform}/%{version}/
+
 Name:           cuda-gcc
 Version:        6.4.0
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        GNU Compiler Collection CUDA compatibility package
 License:        GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
 URL:            http://gcc.gnu.org
@@ -93,7 +96,7 @@ export CXXFLAGS=`echo %{optflags} | sed -e 's/-Werror=format-security//g'`
     --disable-libquadmath-support \
     --disable-libssp \
     --disable-multilib \
-    --disable-shared \
+    --enable-version-specific-runtime-libs \
     --enable-__cxa_atexit \
     --enable-languages=c,c++,fortran \
     --enable-linker-build-id \
@@ -106,13 +109,6 @@ export CXXFLAGS=`echo %{optflags} | sed -e 's/-Werror=format-security//g'`
 %install
 %make_install
 
-#mkdir -p %{buildroot}%{_includedir}/c++/%{version}
-#mv %{buildroot}%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/c++/* \
-#    %{buildroot}%{_includedir}/c++/%{version}/
-
-mv %{buildroot}%{_libdir}/*.{a,o,spec,py} \
-    %{buildroot}%{_libdir}/gcc/%{gcc_target_platform}/%{version}/
-
 mv %{buildroot}%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include-fixed/*.h \
     %{buildroot}%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/
 
@@ -123,7 +119,7 @@ rm -fr \
     %{buildroot}%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include-fixed \
     %{buildroot}%{_libdir}/gcc/%{gcc_target_platform}/%{version}/install-tools \
     %{buildroot}%{_libexecdir}/gcc/%{gcc_target_platform}/%{version}/install-tools \
-    %{buildroot}%{_datadir}/gcc-%{version} \
+#    %{buildroot}%{_datadir}/gcc-%{version} \
 
 find %{buildroot} -name "*.la" -delete
 
@@ -154,25 +150,23 @@ rm -f %{buildroot}%{_bindir}/%{gcc_target_platform}-*
 %{_libexecdir}/gcc/%{gcc_target_platform}/%{version}/lto1
 %{_libexecdir}/gcc/%{gcc_target_platform}/%{version}/lto-wrapper
 %{_libexecdir}/gcc/%{gcc_target_platform}/%{version}/liblto_plugin.so*
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libasan.a
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libasan.*
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libasan_preinit.o
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libatomic.a
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libatomic.*
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libcaf_single.a
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libcilkrts.a
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libcilkrts.spec
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libcilkrts.*
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libgcc.a
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libgcc_eh.a
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libgcov.a
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libgomp.a
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libgomp.spec
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libitm.a
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libitm.spec
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/liblsan.a
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libmpx.a
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libmpx.spec
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libmpxwrappers.a
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libsanitizer.spec
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libtsan.a
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libubsan.a
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libgomp.*
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libitm.*
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/liblsan.*
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libmpx.*
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libmpxwrappers.*
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libsanitizer.*
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libtsan.*
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libubsan.*
+%{_libdir}/gcc/%{gcc_target_platform}/%{_lib}/libgcc_s.*
 
 # Headers
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/stddef.h
@@ -293,17 +287,12 @@ rm -f %{buildroot}%{_bindir}/%{gcc_target_platform}-*
 %{_bindir}/%{?binary_prefix}g++
 %{_mandir}/man1/%{?binary_prefix}cpp.1*
 %{_mandir}/man1/%{?binary_prefix}g++.1*
-%dir %{_includedir}/c++
-%dir %{_includedir}/c++/%{version}
-%{_includedir}/c++/%{version}/[^gjos]*
-%{_includedir}/c++/%{version}/os*
-%{_includedir}/c++/%{version}/s[^u]*
 %{_libexecdir}/gcc/%{gcc_target_platform}/%{version}/cc1plus
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libstdc++.a
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libstdc++.a-gdb.py
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/c++/
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libstdc++.*
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libstdc++fs.a
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libsupc++.a
-
+%{_datadir}/gcc-%{version}/python/libstdcxx
 # Headers
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/omp.h
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/openacc.h
@@ -313,8 +302,7 @@ rm -f %{buildroot}%{_bindir}/%{gcc_target_platform}-*
 %{_mandir}/man1/%{?binary_prefix}gfortran.1*
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/finclude
 %{_libexecdir}/gcc/%{gcc_target_platform}/%{version}/f951
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libgfortran.a
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libgfortran.spec
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libgfortran.*
 
 %files gdb-plugin
 %{_libdir}/libcc1.so*
@@ -328,6 +316,9 @@ rm -f %{buildroot}%{_bindir}/%{gcc_target_platform}-*
 %{_libexecdir}/gcc/%{gcc_target_platform}/%{version}/plugin
 
 %changelog
+* Mon Dec 11 2017 Simone Caronni <negativo17@gmail.com> - 6.4.0-3
+- Enable shared objects.
+
 * Mon Dec 11 2017 Simone Caronni <negativo17@gmail.com> - 6.4.0-2
 - Disable quadmath support.
 
