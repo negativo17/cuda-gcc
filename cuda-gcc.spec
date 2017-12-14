@@ -1,6 +1,5 @@
 %global _gnu %{nil}
 %global _host %{_target_platform}
-%global gcc_compat_version 64
 %global gcc_target_platform %{_target_platform}
 %global gmp_version 4.3.2
 %global libmpc_version 0.8.1
@@ -12,7 +11,7 @@
 
 Name:           cuda-gcc
 Version:        6.4.0
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        GNU Compiler Collection CUDA compatibility package
 License:        GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
 URL:            http://gcc.gnu.org
@@ -30,6 +29,8 @@ BuildRequires:  isl-devel >= 0.15
 BuildRequires:  libmpc-devel >= %{libmpc_version}
 BuildRequires:  mpfr-devel >= %{mpfr_version}
 BuildRequires:  zlib-devel
+
+Requires:       binutils
 
 %description
 The %{name} package contains a CUDA supported version of the GNU Compiler
@@ -94,13 +95,14 @@ export CXXFLAGS=`echo %{optflags} | sed -e 's/-Werror=format-security//g'`
     --disable-bootstrap \
     --disable-libquadmath \
     --disable-libquadmath-support \
+    --disable-libsanitizer \
     --disable-libssp \
     --disable-multilib \
-    --enable-version-specific-runtime-libs \
     --enable-__cxa_atexit \
     --enable-languages=c,c++,fortran \
     --enable-linker-build-id \
     --enable-threads=posix \
+    --enable-version-specific-runtime-libs \
     --program-prefix=cuda- \
     --with-system-zlib
 
@@ -112,19 +114,20 @@ export CXXFLAGS=`echo %{optflags} | sed -e 's/-Werror=format-security//g'`
 mv %{buildroot}%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include-fixed/*.h \
     %{buildroot}%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/
 
+mv %{buildroot}%{_libdir}/gcc/%{gcc_target_platform}/%{_lib}/* \
+    %{buildroot}%{_libdir}/gcc/%{gcc_target_platform}/%{version}/
+
 rm -fr \
+    %{buildroot}%{_bindir}/%{gcc_target_platform}-* \
     %{buildroot}%{_datadir}/locale \
     %{buildroot}%{_infodir}/{dir,libgomp.info,libitm.info}* \
     %{buildroot}%{_mandir}/man7/{fsf-funding,gfdl,gpl}* \
     %{buildroot}%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include-fixed \
     %{buildroot}%{_libdir}/gcc/%{gcc_target_platform}/%{version}/install-tools \
-    %{buildroot}%{_libexecdir}/gcc/%{gcc_target_platform}/%{version}/install-tools \
-#    %{buildroot}%{_datadir}/gcc-%{version} \
+    %{buildroot}%{_libdir}/gcc/%{gcc_target_platform}/%{_lib}/ \
+    %{buildroot}%{_libexecdir}/gcc/%{gcc_target_platform}/%{version}/install-tools
 
 find %{buildroot} -name "*.la" -delete
-
-# Remove binaries with full target platform in the name
-rm -f %{buildroot}%{_bindir}/%{gcc_target_platform}-*
 
 %files
 %{_bindir}/%{?binary_prefix}gcc
@@ -150,23 +153,17 @@ rm -f %{buildroot}%{_bindir}/%{gcc_target_platform}-*
 %{_libexecdir}/gcc/%{gcc_target_platform}/%{version}/lto1
 %{_libexecdir}/gcc/%{gcc_target_platform}/%{version}/lto-wrapper
 %{_libexecdir}/gcc/%{gcc_target_platform}/%{version}/liblto_plugin.so*
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libasan.*
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libasan_preinit.o
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libatomic.*
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libcaf_single.a
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libcilkrts.*
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libgcc.a
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libgcc_eh.a
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libgcc_s.*
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libgcov.a
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libgomp.*
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libitm.*
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/liblsan.*
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libmpx.*
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libmpxwrappers.*
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libsanitizer.*
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libtsan.*
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libubsan.*
-%{_libdir}/gcc/%{gcc_target_platform}/%{_lib}/libgcc_s.*
 
 # Headers
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/stddef.h
@@ -279,7 +276,6 @@ rm -f %{buildroot}%{_bindir}/%{gcc_target_platform}-*
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/vecintrin.h
 %endif
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/cilk
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/sanitizer
 
 %files c++
 %{_bindir}/%{?binary_prefix}c++
@@ -316,6 +312,9 @@ rm -f %{buildroot}%{_bindir}/%{gcc_target_platform}-*
 %{_libexecdir}/gcc/%{gcc_target_platform}/%{version}/plugin
 
 %changelog
+* Thu Dec 14 2017 Simone Caronni <negativo17@gmail.com> - 6.4.0-4
+- Cleanup.
+
 * Mon Dec 11 2017 Simone Caronni <negativo17@gmail.com> - 6.4.0-3
 - Enable shared objects.
 
