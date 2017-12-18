@@ -11,7 +11,7 @@
 
 Name:           cuda-gcc
 Version:        6.4.0
-Release:        4%{?dist}
+Release:        6%{?dist}
 Summary:        GNU Compiler Collection CUDA compatibility package
 License:        GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
 URL:            http://gcc.gnu.org
@@ -56,31 +56,6 @@ Collection.
 
 This package adds C++ support to the GNU Compiler Collection.
 
-%package gdb-plugin
-Summary:        GCC plugin for GDB for GCC CUDA compatibility package
-Requires:       %{name} = %{version}-%{release}
-
-%description gdb-plugin
-The %{name} package contains a CUDA supported version of the GNU Compiler
-Collection.
-
-This package contains a GCC plugin for GDB C expression evaluation.
-
-%package plugin-devel
-Summary:        Support for compiling GCC CUDA compatibility package plugins
-Requires:       %{name} = %{version}-%{release}
-Requires:       gmp-devel >= %{gmp_version}
-Requires:       libmpc-devel >= %{libmpc_version}
-Requires:       mpfr-devel >= %{mpfr_version}
-
-%description plugin-devel
-The %{name} package contains a CUDA supported version of the GNU Compiler
-Collection.
-
-This package contains header files and other support files for compiling GCC
-plugins. The GCC plugin ABI is currently not stable, so plugins must be rebuilt
-any time GCC is updated.
-
 %prep
 %autosetup -p1 -n gcc-%{version}
 
@@ -124,8 +99,11 @@ rm -fr \
     %{buildroot}%{_mandir}/man7/{fsf-funding,gfdl,gpl}* \
     %{buildroot}%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include-fixed \
     %{buildroot}%{_libdir}/gcc/%{gcc_target_platform}/%{version}/install-tools \
+    %{buildroot}%{_libdir}/gcc/%{gcc_target_platform}/%{version}/plugin \
     %{buildroot}%{_libdir}/gcc/%{gcc_target_platform}/%{_lib}/ \
-    %{buildroot}%{_libexecdir}/gcc/%{gcc_target_platform}/%{version}/install-tools
+    %{buildroot}%{_libdir}/libcc1.so* \
+    %{buildroot}%{_libexecdir}/gcc/%{gcc_target_platform}/%{version}/install-tools \
+    %{buildroot}%{_libexecdir}/gcc/%{gcc_target_platform}/%{version}/plugin
 
 find %{buildroot} -name "*.la" -delete
 
@@ -300,18 +278,10 @@ find %{buildroot} -name "*.la" -delete
 %{_libexecdir}/gcc/%{gcc_target_platform}/%{version}/f951
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libgfortran.*
 
-%files gdb-plugin
-%{_libdir}/libcc1.so*
-%dir %{_libdir}/gcc/%{gcc_target_platform}/%{version}/plugin
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/plugin/libcc1plugin.so*
-
-%files plugin-devel
-%dir %{_libdir}/gcc/%{gcc_target_platform}/%{version}/plugin
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/plugin/gtype.state
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/plugin/include
-%{_libexecdir}/gcc/%{gcc_target_platform}/%{version}/plugin
-
 %changelog
+* Sun Dec 17 2017 Simone Caronni <negativo17@gmail.com> - 6.4.0-6
+- Remove GDB plugin.
+
 * Thu Dec 14 2017 Simone Caronni <negativo17@gmail.com> - 6.4.0-4
 - Cleanup.
 
