@@ -219,9 +219,6 @@ find %{buildroot} -name "*.la" -delete
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/clzerointrin.h
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/pkuintrin.h
 %endif
-%ifarch ia64
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/ia64intrin.h
-%endif
 %ifarch ppc ppc64 ppc64le ppc64p7
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/ppc-asm.h
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/altivec.h
@@ -243,15 +240,6 @@ find %{buildroot} -name "*.la" -delete
 %ifarch aarch64
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/arm_neon.h
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/arm_acle.h
-%endif
-%ifarch sparc sparcv9 sparc64
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/visintrin.h
-%endif
-%ifarch s390 s390x
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/s390intrin.h
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/htmintrin.h
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/htmxlintrin.h
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/vecintrin.h
 %endif
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/cilk
 
