@@ -32,6 +32,9 @@ BuildRequires:  zlib-devel
 
 Requires:       binutils
 
+# Disable annobin
+%undefine _annotated_build
+
 %description
 The %{name} package contains a CUDA supported version of the GNU Compiler
 Collection.
