@@ -32,6 +32,9 @@ BuildRequires:  zlib-devel
 
 Requires:       binutils
 
+# Disable annobin
+%undefine _annotated_build
+
 %description
 The %{name} package contains a CUDA supported version of the GNU Compiler
 Collection.
@@ -60,8 +63,17 @@ This package adds C++ support to the GNU Compiler Collection.
 %autosetup -p1 -n gcc-%{version}
 
 %build
-export CFLAGS=`echo %{optflags} | sed -e 's/-Werror=format-security//g'`
-export CXXFLAGS=`echo %{optflags} | sed -e 's/-Werror=format-security//g'`
+%if 0%{?fedora} >= 28
+export CFLAGS=`echo %{build_cflags} | sed -e 's/-Werror=format-security//g' | sed -e 's/-fstack-clash-protection -mcet -fcf-protection//g'`
+export CXXFLAGS=`echo %{build_cxxflags} | sed -e 's/-Werror=format-security//g' | sed -e 's/-fstack-clash-protection -mcet -fcf-protection//g'`
+export FFLAGS=`echo %{build_fflags} | sed -e 's/-Werror=format-security//g' | sed -e 's/-fstack-clash-protection -mcet -fcf-protection//g'`
+export FCFLAGS=`echo %{build_fflags} | sed -e 's/-Werror=format-security//g' | sed -e 's/-fstack-clash-protection -mcet -fcf-protection//g'`
+%else
+export CFLAGS=`echo %{build_cflags} | sed -e 's/-Werror=format-security//g'`
+export CXXFLAGS=`echo %{build_cxxflags} | sed -e 's/-Werror=format-security//g'`
+export FFLAGS=`echo %{build_fflags} | sed -e 's/-Werror=format-security//g'`
+export FCFLAGS=`echo %{build_fflags} | sed -e 's/-Werror=format-security//g'`
+%endif
 
 # Parameter '--enable-version-specific-runtime-libs' can't be used as it
 # prevents the proper include directories to be added by default to cc1/cc1plus
