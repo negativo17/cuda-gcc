@@ -11,7 +11,7 @@
 
 Name:           cuda-gcc
 Version:        6.4.0
-Release:        6%{?dist}
+Release:        7%{?dist}
 Summary:        GNU Compiler Collection CUDA compatibility package
 License:        GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
 URL:            http://gcc.gnu.org
@@ -63,16 +63,14 @@ This package adds C++ support to the GNU Compiler Collection.
 %autosetup -p1 -n gcc-%{version}
 
 %build
-%if 0%{?fedora} >= 28
-export CFLAGS=`echo %{build_cflags} | sed -e 's/-Werror=format-security//g' | sed -e 's/-fstack-clash-protection -mcet -fcf-protection//g'`
-export CXXFLAGS=`echo %{build_cxxflags} | sed -e 's/-Werror=format-security//g' | sed -e 's/-fstack-clash-protection -mcet -fcf-protection//g'`
-export FFLAGS=`echo %{build_fflags} | sed -e 's/-Werror=format-security//g' | sed -e 's/-fstack-clash-protection -mcet -fcf-protection//g'`
-export FCFLAGS=`echo %{build_fflags} | sed -e 's/-Werror=format-security//g' | sed -e 's/-fstack-clash-protection -mcet -fcf-protection//g'`
+%if 0%{?fedora} >= 27
+export CFLAGS=`echo %{build_cflags} | sed -e 's/-Werror=format-security//g' -e 's/-fstack-clash-protection -mcet -fcf-protection//g'`
+export CXXFLAGS=`echo %{build_cxxflags} | sed -e 's/-Werror=format-security//g' -e 's/-fstack-clash-protection -mcet -fcf-protection//g'`
+export FFLAGS=`echo %{build_fflags} | sed -e 's/-Werror=format-security//g' -e 's/-fstack-clash-protection -mcet -fcf-protection//g'`
+export FCFLAGS=`echo %{build_fflags} | sed -e 's/-Werror=format-security//g' -e 's/-fstack-clash-protection -mcet -fcf-protection//g'`
 %else
-export CFLAGS=`echo %{build_cflags} | sed -e 's/-Werror=format-security//g'`
-export CXXFLAGS=`echo %{build_cxxflags} | sed -e 's/-Werror=format-security//g'`
-export FFLAGS=`echo %{build_fflags} | sed -e 's/-Werror=format-security//g'`
-export FCFLAGS=`echo %{build_fflags} | sed -e 's/-Werror=format-security//g'`
+export CFLAGS=`echo %{optflags} | sed -e 's/-Werror=format-security//g'`
+export CXXFLAGS=`echo %{optflags} | sed -e 's/-Werror=format-security//g'`
 %endif
 
 # Parameter '--enable-version-specific-runtime-libs' can't be used as it
@@ -279,6 +277,9 @@ find %{buildroot} -name "*.la" -delete
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libgfortran.*
 
 %changelog
+* Tue May 08 2018 Simone Caronni <negativo17@gmail.com> - 6.4.0-7
+- Fix build on Fedora 28 (thanks Rok Mandeljc).
+
 * Sun Dec 17 2017 Simone Caronni <negativo17@gmail.com> - 6.4.0-6
 - Remove GDB plugin.
 
