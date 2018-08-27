@@ -10,16 +10,14 @@
 %global __requires_exclude_from (%{_libdir}|%{_libexecdir})/gcc/%{gcc_target_platform}/%{version}/
 
 Name:           cuda-gcc
-Version:        6.4.0
-Release:        7%{?dist}
+Version:        7.3.0
+Release:        1%{?dist}
 Summary:        GNU Compiler Collection CUDA compatibility package
 License:        GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
 URL:            http://gcc.gnu.org
 
 Source0:        http://ftp.gnu.org/gnu/gcc/gcc-%{version}/gcc-%{version}.tar.xz
 Patch0:         gcc-6.4.0-libatomic.patch
-Patch1:         gcc-6.4.0-unwind.patch
-Patch2:         gcc-6.4.0-libsanitizer.patch
 
 BuildRequires:  gcc
 BuildRequires:  gcc-c++
@@ -64,10 +62,10 @@ This package adds C++ support to the GNU Compiler Collection.
 
 %build
 %if 0%{?fedora} >= 27
-export CFLAGS=`echo %{build_cflags} | sed -e 's/-Werror=format-security//g' -e 's/-fstack-clash-protection -mcet -fcf-protection//g'`
-export CXXFLAGS=`echo %{build_cxxflags} | sed -e 's/-Werror=format-security//g' -e 's/-fstack-clash-protection -mcet -fcf-protection//g'`
-export FFLAGS=`echo %{build_fflags} | sed -e 's/-Werror=format-security//g' -e 's/-fstack-clash-protection -mcet -fcf-protection//g'`
-export FCFLAGS=`echo %{build_fflags} | sed -e 's/-Werror=format-security//g' -e 's/-fstack-clash-protection -mcet -fcf-protection//g'`
+export CFLAGS=`echo %{build_cflags} | sed -e 's/-Werror=format-security//g' -e 's/-fstack-clash-protection -fcf-protection//g'`
+export CXXFLAGS=`echo %{build_cxxflags} | sed -e 's/-Werror=format-security//g' -e 's/-fstack-clash-protection -fcf-protection//g'`
+export FFLAGS=`echo %{build_fflags} | sed -e 's/-Werror=format-security//g' -e 's/-fstack-clash-protection -fcf-protection//g'`
+export FCFLAGS=`echo %{build_fflags} | sed -e 's/-Werror=format-security//g' -e 's/-fstack-clash-protection -fcf-protection//g'`
 %else
 export CFLAGS=`echo %{optflags} | sed -e 's/-Werror=format-security//g'`
 export CXXFLAGS=`echo %{optflags} | sed -e 's/-Werror=format-security//g'`
@@ -228,6 +226,11 @@ find %{buildroot} -name "*.la" -delete
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/xsavesintrin.h
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/clzerointrin.h
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/pkuintrin.h
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/avx5124fmapsintrin.h
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/avx5124vnniwintrin.h
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/avx512vpopcntdqintrin.h
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/gcov.h
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/sgxintrin.h
 %endif
 %ifarch ppc ppc64 ppc64le ppc64p7
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/ppc-asm.h
@@ -277,6 +280,9 @@ find %{buildroot} -name "*.la" -delete
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libgfortran.*
 
 %changelog
+* Mon Aug 27 2018 Simone Caronni <negativo17@gmail.com> - 7.3.0-1
+- Update to 7.3.0.
+
 * Tue May 08 2018 Simone Caronni <negativo17@gmail.com> - 6.4.0-7
 - Fix build on Fedora 28 (thanks Rok Mandeljc).
 
