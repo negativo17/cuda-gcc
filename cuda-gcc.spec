@@ -6,19 +6,26 @@
 %global mpfr_version 2.4.2
 %global binary_prefix cuda-
 
+%global svnrev 258210
+%global svndate 20180303
+
 %global __provides_exclude_from (%{_libdir}|%{_libexecdir})/gcc/%{gcc_target_platform}/%{version}/
 %global __requires_exclude_from (%{_libdir}|%{_libexecdir})/gcc/%{gcc_target_platform}/%{version}/
 
 Name:           cuda-gcc
-Version:        7.3.0
-Release:        1%{?dist}
+Version:        7.3.1
+Release:        2%{?dist}
 Summary:        GNU Compiler Collection CUDA compatibility package
 License:        GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
 URL:            http://gcc.gnu.org
-
-Source0:        http://ftp.gnu.org/gnu/gcc/gcc-%{version}/gcc-%{version}.tar.xz
+# Fedora 27 snapshot of 7.3 with backported hardening features:
+#   https://bugzilla.redhat.com/show_bug.cgi?id=1512529
+# svn export svn://gcc.gnu.org/svn/gcc/branches/redhat/gcc-7-branch@%{svnrev} gcc-%{version}-%{svndate}
+# tar cf - gcc-%{version}-%{svndate} | bzip2 -9 > gcc-%{version}-%{svndate}.tar.bz2
+Source0:        gcc-%{version}-20180303.tar.bz2
 Patch0:         gcc-6.4.0-libatomic.patch
 
+BuildRequires:  flex
 BuildRequires:  gcc
 BuildRequires:  gcc-c++
 # from contrib/download_prerequisites
@@ -58,18 +65,13 @@ Collection.
 This package adds C++ support to the GNU Compiler Collection.
 
 %prep
-%autosetup -p1 -n gcc-%{version}
+%autosetup -p1 -n gcc-%{version}-%{svndate}
 
 %build
-%if 0%{?fedora} >= 27
-export CFLAGS=`echo %{build_cflags} | sed -e 's/-Werror=format-security//g' -e 's/-fstack-clash-protection -fcf-protection//g'`
-export CXXFLAGS=`echo %{build_cxxflags} | sed -e 's/-Werror=format-security//g' -e 's/-fstack-clash-protection -fcf-protection//g'`
-export FFLAGS=`echo %{build_fflags} | sed -e 's/-Werror=format-security//g' -e 's/-fstack-clash-protection -fcf-protection//g'`
-export FCFLAGS=`echo %{build_fflags} | sed -e 's/-Werror=format-security//g' -e 's/-fstack-clash-protection -fcf-protection//g'`
-%else
-export CFLAGS=`echo %{optflags} | sed -e 's/-Werror=format-security//g'`
-export CXXFLAGS=`echo %{optflags} | sed -e 's/-Werror=format-security//g'`
-%endif
+export CFLAGS=`echo %{build_cflags} | sed -e 's/-Werror=format-security//g' -e 's/-fcf-protection//g'`
+export CXXFLAGS=`echo %{build_cxxflags} | sed -e 's/-Werror=format-security//g' -e 's/-fcf-protection//g'`
+export FFLAGS=`echo %{build_fflags} | sed -e 's/-Werror=format-security//g' -e 's/-fcf-protection//g'`
+export FCFLAGS=`echo %{build_fflags} | sed -e 's/-Werror=format-security//g' -e 's/-fcf-protection//g'`
 
 # Parameter '--enable-version-specific-runtime-libs' can't be used as it
 # prevents the proper include directories to be added by default to cc1/cc1plus
@@ -280,6 +282,9 @@ find %{buildroot} -name "*.la" -delete
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libgfortran.*
 
 %changelog
+* Thu Jan 03 2019 Simone Caronni <negativo17@gmail.com> - 7.3.1-2
+- Update to 7.3.1 snapshot with backported hardening features from Fedora 27.
+
 * Mon Aug 27 2018 Simone Caronni <negativo17@gmail.com> - 7.3.0-1
 - Update to 7.3.0.
 
