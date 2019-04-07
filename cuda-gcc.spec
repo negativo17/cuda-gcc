@@ -6,23 +6,17 @@
 %global mpfr_version 2.4.2
 %global binary_prefix cuda-
 
-%global svnrev 258210
-%global svndate 20180303
-
 %global __provides_exclude_from (%{_libdir}|%{_libexecdir})/gcc/%{gcc_target_platform}/%{version}/
 %global __requires_exclude_from (%{_libdir}|%{_libexecdir})/gcc/%{gcc_target_platform}/%{version}/
 
 Name:           cuda-gcc
-Version:        7.3.1
-Release:        2%{?dist}
+Version:        8.3.0
+Release:        1%{?dist}
 Summary:        GNU Compiler Collection CUDA compatibility package
 License:        GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
 URL:            http://gcc.gnu.org
-# Fedora 27 snapshot of 7.3 with backported hardening features:
-#   https://bugzilla.redhat.com/show_bug.cgi?id=1512529
-# svn export svn://gcc.gnu.org/svn/gcc/branches/redhat/gcc-7-branch@%{svnrev} gcc-%{version}-%{svndate}
-# tar cf - gcc-%{version}-%{svndate} | bzip2 -9 > gcc-%{version}-%{svndate}.tar.bz2
-Source0:        gcc-%{version}-20180303.tar.bz2
+
+Source0:        http://ftp.gnu.org/gnu/gcc/gcc-%{version}/gcc-%{version}.tar.xz
 Patch0:         gcc-6.4.0-libatomic.patch
 
 BuildRequires:  flex
@@ -65,13 +59,13 @@ Collection.
 This package adds C++ support to the GNU Compiler Collection.
 
 %prep
-%autosetup -p1 -n gcc-%{version}-%{svndate}
+%autosetup -p1 -n gcc-%{version}
 
 %build
-export CFLAGS=`echo %{build_cflags} | sed -e 's/-Werror=format-security//g' -e 's/-fcf-protection//g'`
-export CXXFLAGS=`echo %{build_cxxflags} | sed -e 's/-Werror=format-security//g' -e 's/-fcf-protection//g'`
-export FFLAGS=`echo %{build_fflags} | sed -e 's/-Werror=format-security//g' -e 's/-fcf-protection//g'`
-export FCFLAGS=`echo %{build_fflags} | sed -e 's/-Werror=format-security//g' -e 's/-fcf-protection//g'`
+export CFLAGS=`echo %{build_cflags} | sed -e 's/-Werror=format-security//g'`
+export CXXFLAGS=`echo %{build_cxxflags} | sed -e 's/-Werror=format-security//g'`
+export FFLAGS=`echo %{build_fflags} | sed -e 's/-Werror=format-security//g'`
+export FCFLAGS=`echo %{build_fflags} | sed -e 's/-Werror=format-security//g'`
 
 # Parameter '--enable-version-specific-runtime-libs' can't be used as it
 # prevents the proper include directories to be added by default to cc1/cc1plus
@@ -143,7 +137,6 @@ find %{buildroot} -name "*.la" -delete
 %{_libexecdir}/gcc/%{gcc_target_platform}/%{version}/liblto_plugin.so*
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libatomic.*
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libcaf_single.a
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/libcilkrts.*
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libgcc.a
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libgcc_eh.a
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libgcc_s.*
@@ -233,6 +226,21 @@ find %{buildroot} -name "*.la" -delete
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/avx512vpopcntdqintrin.h
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/gcov.h
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/sgxintrin.h
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/avx512bitalgintrin.h
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/avx512vbmi2intrin.h
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/avx512vbmi2vlintrin.h
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/avx512vnniintrin.h
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/avx512vnnivlintrin.h
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/avx512vpopcntdqvlintrin.h
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/cet.h
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/cetintrin.h
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/gfniintrin.h
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/movdirintrin.h
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/pconfigintrin.h
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/vaesintrin.h
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/vpclmulqdqintrin.h
+%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/wbnoinvdintrin.h
+
 %endif
 %ifarch ppc ppc64 ppc64le ppc64p7
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/ppc-asm.h
@@ -256,7 +264,6 @@ find %{buildroot} -name "*.la" -delete
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/arm_neon.h
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/arm_acle.h
 %endif
-%{_libdir}/gcc/%{gcc_target_platform}/%{version}/include/cilk
 
 %files c++
 %{_bindir}/%{?binary_prefix}c++
@@ -282,6 +289,9 @@ find %{buildroot} -name "*.la" -delete
 %{_libdir}/gcc/%{gcc_target_platform}/%{version}/libgfortran.*
 
 %changelog
+* Sun Apr 07 2019 Simone Caronni <negativo17@gmail.com> - 8.3.0-1
+- Update to 8.3.0.
+
 * Thu Jan 03 2019 Simone Caronni <negativo17@gmail.com> - 7.3.1-2
 - Update to 7.3.1 snapshot with backported hardening features from Fedora 27.
 
