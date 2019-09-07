@@ -82,7 +82,7 @@ export FCFLAGS=`echo %{build_fflags} | sed -e 's/-Werror=format-security//g'`
     --enable-linker-build-id \
     --enable-threads=posix \
     --enable-version-specific-runtime-libs \
-    --program-prefix=cuda- \
+    --program-prefix=%{?binary_prefix} \
     --with-system-zlib
 
 %make_build
