@@ -56,7 +56,7 @@ Requires:       %{name} = %{version}-%{release}
 The %{name} package contains a CUDA supported version of the GNU Compiler
 Collection.
 
-This package adds C++ support to the GNU Compiler Collection.
+This package adds Fortran support to the GNU Compiler Collection.
 
 %prep
 %autosetup -p1 -n gcc-%{version}
