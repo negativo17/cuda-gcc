@@ -1,6 +1,7 @@
---- gcc-6.4.0/libatomic/Makefile.in	2017-07-04 09:28:14.761353458 +0200
-+++ gcc-6.4.0.new/libatomic/Makefile.in	2017-10-10 06:29:35.031957717 +0200
-@@ -330,7 +330,8 @@
+diff -Naur gcc-9.3.0.old/libatomic/Makefile.in gcc-9.3.0/libatomic/Makefile.in
+--- gcc-9.3.0.old/libatomic/Makefile.in	2021-05-01 09:25:00.498985215 +0200
++++ gcc-9.3.0/libatomic/Makefile.in	2021-05-01 09:25:20.927323991 +0200
+@@ -414,7 +414,8 @@
  PAT_S = $(word 3,$(PAT_SPLIT))
  IFUNC_DEF = -DIFUNC_ALT=$(PAT_S)
  IFUNC_OPT = $(word $(PAT_S),$(IFUNC_OPTIONS))
