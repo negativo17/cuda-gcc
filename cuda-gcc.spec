@@ -4,14 +4,16 @@
 %global __requires_exclude_from (%{_libdir}|%{_libexecdir})/gcc/%{_target_platform}/%{version}/
 
 Name:           cuda-gcc
-Version:        9.3.0
+Version:        11.3.0
 Release:        1%{?dist}
 Summary:        GNU Compiler Collection CUDA compatibility package
 License:        GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
 URL:            http://gcc.gnu.org
 
+# Platforms supported by CUDA:
+BuildArch:      aarch64 x86_64 ppc64le
+
 Source0:        http://ftp.gnu.org/gnu/gcc/gcc-%{version}/gcc-%{version}.tar.xz
-Patch0:         gcc-libatomic.patch
 
 BuildRequires:  flex
 BuildRequires:  gcc
@@ -57,11 +59,16 @@ This package adds Fortran support to the GNU Compiler Collection.
 %build
 %define _lto_cflags %{nil}
 %define _warning_options -Wall
+%define _configure ../configure
+
+mkdir objdir
+pushd objdir
 
 # Parameter '--enable-version-specific-runtime-libs' can't be used as it
 # prevents the proper include directories to be added by default to cc1/cc1plus
 %configure \
     --build=%{_target_platform} \
+    --target=%{_target_platform} \
     --disable-bootstrap \
     --disable-libquadmath \
     --disable-libquadmath-support \
@@ -78,8 +85,12 @@ This package adds Fortran support to the GNU Compiler Collection.
 
 %make_build
 
+popd
+
 %install
+pushd objdir
 %make_install
+popd
 
 mv %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{version}/include-fixed/*.h \
     %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{version}/include/
@@ -110,6 +121,7 @@ find %{buildroot} -name "*.la" -delete
 %{_bindir}/%{?binary_prefix}gcov
 %{_bindir}/%{?binary_prefix}gcov-dump
 %{_bindir}/%{?binary_prefix}gcov-tool
+%{_bindir}/%{?binary_prefix}lto-dump
 %dir %{_libdir}/gcc
 %dir %{_libdir}/gcc/%{_target_platform}
 %dir %{_libdir}/gcc/%{_target_platform}/%{version}
@@ -118,6 +130,7 @@ find %{buildroot} -name "*.la" -delete
 %{_mandir}/man1/%{?binary_prefix}gcov.1*
 %{_mandir}/man1/%{?binary_prefix}gcov-dump.1*
 %{_mandir}/man1/%{?binary_prefix}gcov-tool.1*
+%{_mandir}/man1/%{?binary_prefix}lto-dump.1*
 %dir %{_libexecdir}/gcc
 %dir %{_libexecdir}/gcc/%{_target_platform}
 %dir %{_libexecdir}/gcc/%{_target_platform}/%{version}
@@ -126,6 +139,12 @@ find %{buildroot} -name "*.la" -delete
 %{_libexecdir}/gcc/%{_target_platform}/%{version}/lto1
 %{_libexecdir}/gcc/%{_target_platform}/%{version}/lto-wrapper
 %{_libexecdir}/gcc/%{_target_platform}/%{version}/liblto_plugin.so*
+%ifarch ppc64le
+%{_libdir}/gcc/%{_target_platform}/%{version}/ecrti.o
+%{_libdir}/gcc/%{_target_platform}/%{version}/ecrtn.o
+%{_libdir}/gcc/%{_target_platform}/%{version}/ncrti.o
+%{_libdir}/gcc/%{_target_platform}/%{version}/ncrtn.o
+%endif
 %{_libdir}/gcc/%{_target_platform}/%{version}/libatomic.*
 %{_libdir}/gcc/%{_target_platform}/%{version}/libcaf_single.a
 %{_libdir}/gcc/%{_target_platform}/%{version}/libgcc.a
@@ -134,129 +153,8 @@ find %{buildroot} -name "*.la" -delete
 %{_libdir}/gcc/%{_target_platform}/%{version}/libgcov.a
 %{_libdir}/gcc/%{_target_platform}/%{version}/libgomp.*
 %{_libdir}/gcc/%{_target_platform}/%{version}/libitm.*
-
-# Headers
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/stddef.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/stdarg.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/stdfix.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/varargs.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/float.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/limits.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/stdbool.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/iso646.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/syslimits.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/unwind.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/stdint.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/stdint-gcc.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/stdalign.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/stdnoreturn.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/stdatomic.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/pthread.h
-
-%ifarch %{ix86} x86_64
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/mmintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/xmmintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/emmintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/pmmintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/tmmintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/ammintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/smmintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/nmmintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/bmmintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/wmmintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/immintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/avxintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/x86intrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/fma4intrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/xopintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/lwpintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/popcntintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/bmiintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/tbmintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/ia32intrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/avx2intrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/bmi2intrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/f16cintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/fmaintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/lzcntintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/rtmintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/xtestintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/adxintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/prfchwintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/rdseedintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/fxsrintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/xsaveintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/xsaveoptintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/avx512cdintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/avx512erintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/avx512fintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/avx512pfintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/shaintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/mm_malloc.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/mm3dnow.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/cpuid.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/cross-stdarg.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/avx512bwintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/avx512dqintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/avx512ifmaintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/avx512ifmavlintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/avx512vbmiintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/avx512vbmivlintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/avx512vlbwintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/avx512vldqintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/avx512vlintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/clflushoptintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/clwbintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/mwaitxintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/xsavecintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/xsavesintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/clzerointrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/pkuintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/avx5124fmapsintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/avx5124vnniwintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/avx512vpopcntdqintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/gcov.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/sgxintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/avx512bitalgintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/avx512vbmi2intrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/avx512vbmi2vlintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/avx512vnniintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/avx512vnnivlintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/avx512vpopcntdqvlintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/cet.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/cetintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/gfniintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/movdirintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/pconfigintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/vaesintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/vpclmulqdqintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/wbnoinvdintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/cldemoteintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/waitpkgintrin.h
-
-%endif
-%ifarch ppc ppc64 ppc64le ppc64p7
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/ppc-asm.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/altivec.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/spe.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/paired.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/ppu_intrinsics.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/si2vmx.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/spu2vmx.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/vec_types.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/htmintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/htmxlintrin.h
-%endif
-%ifarch %{arm}
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/unwind-arm-common.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/mmintrin.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/arm_neon.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/arm_acle.h
-%endif
-%ifarch aarch64
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/arm_neon.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/arm_acle.h
-%endif
+%{_libdir}/gcc/%{_target_platform}/%{version}/include/
+%exclude %{_libdir}/gcc/%{_target_platform}/%{version}/include/ISO_Fortran_binding.h
 
 %files c++
 %{_bindir}/%{?binary_prefix}c++
@@ -265,24 +163,26 @@ find %{buildroot} -name "*.la" -delete
 %{_mandir}/man1/%{?binary_prefix}cpp.1*
 %{_mandir}/man1/%{?binary_prefix}g++.1*
 %{_libexecdir}/gcc/%{_target_platform}/%{version}/cc1plus
+%{_libexecdir}/gcc/%{_target_platform}/%{version}/g++-mapper-server
 %{_libdir}/gcc/%{_target_platform}/%{version}/include/c++/
 %{_libdir}/gcc/%{_target_platform}/%{version}/libstdc++.*
 %{_libdir}/gcc/%{_target_platform}/%{version}/libstdc++fs.a
 %{_libdir}/gcc/%{_target_platform}/%{version}/libsupc++.a
 %{_datadir}/gcc-%{version}/python/libstdcxx
-# Headers
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/omp.h
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/openacc.h
 
 %files gfortran
 %{_bindir}/%{?binary_prefix}gfortran
 %{_mandir}/man1/%{?binary_prefix}gfortran.1*
-%{_libdir}/gcc/%{_target_platform}/%{version}/finclude
+%{_libdir}/gcc/%{_target_platform}/%{version}/finclude/
 %{_libdir}/gcc/%{_target_platform}/%{version}/include/ISO_Fortran_binding.h
 %{_libexecdir}/gcc/%{_target_platform}/%{version}/f951
 %{_libdir}/gcc/%{_target_platform}/%{version}/libgfortran.*
 
 %changelog
+* Tue May 17 2022 Simone Caronni <negativo17@gmail.com> - 11.3.0-1
+- Update to 11.3.0
+- Simplify SPEC file.
+
 * Fri Apr 30 2021 Simone Caronni <negativo17@gmail.com> - 9.3.0-1
 - Update to 9.3.0.
 - Disable LTO.
