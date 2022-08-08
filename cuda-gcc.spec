@@ -5,7 +5,7 @@
 
 Name:           cuda-gcc
 Version:        11.3.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        GNU Compiler Collection CUDA compatibility package
 License:        GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
 URL:            http://gcc.gnu.org
@@ -179,6 +179,9 @@ find %{buildroot} -name "*.la" -delete
 %{_libdir}/gcc/%{_target_platform}/%{version}/libgfortran.*
 
 %changelog
+* Mon Aug 08 2022 Peter Kovář <peter.kovar@reflexion.tv> - 11.3.0-2
+- Remove info files.
+
 * Tue May 17 2022 Simone Caronni <negativo17@gmail.com> - 11.3.0-1
 - Update to 11.3.0
 - Simplify SPEC file.
