@@ -3,9 +3,15 @@
 %global __provides_exclude_from (%{_libdir}|%{_libexecdir})/gcc/%{_target_platform}/%{version}/
 %global __requires_exclude_from (%{_libdir}|%{_libexecdir})/gcc/%{_target_platform}/%{version}/
 
+%global snapshot 12-20230311
+
+%global _lto_cflags %{nil}
+%global _warning_options -Wall -Wno-error=missing-include-dirs
+%global _configure ../configure
+
 Name:           cuda-gcc
-Version:        11.3.0
-Release:        2%{?dist}
+Version:        12.2.1
+Release:        1%{?dist}
 Summary:        GNU Compiler Collection CUDA compatibility package
 License:        GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
 URL:            http://gcc.gnu.org
@@ -13,7 +19,11 @@ URL:            http://gcc.gnu.org
 # Platforms supported by CUDA:
 BuildArch:      aarch64 x86_64 ppc64le
 
+%if 0%{?snapshot:1}
+Source0:        https://gcc.gnu.org/pub/gcc/snapshots/%{snapshot}/gcc-%{snapshot}.tar.xz
+%else
 Source0:        http://ftp.gnu.org/gnu/gcc/gcc-%{version}/gcc-%{version}.tar.xz
+%endif
 
 BuildRequires:  flex
 BuildRequires:  gcc
@@ -54,13 +64,13 @@ Collection.
 This package adds Fortran support to the GNU Compiler Collection.
 
 %prep
+%if 0%{?snapshot:1}
+%autosetup -p1 -n gcc-%{snapshot}
+%else
 %autosetup -p1 -n gcc-%{version}
+%endif
 
 %build
-%define _lto_cflags %{nil}
-%define _warning_options -Wall
-%define _configure ../configure
-
 mkdir objdir
 pushd objdir
 
@@ -179,6 +189,9 @@ find %{buildroot} -name "*.la" -delete
 %{_libdir}/gcc/%{_target_platform}/%{version}/libgfortran.*
 
 %changelog
+* Mon Mar 13 2023 Simone Caronni <negativo17@gmail.com> - 12.2.1-1
+- Update to latest 12 snapshot.
+
 * Mon Aug 08 2022 Peter Kovář <peter.kovar@reflexion.tv> - 11.3.0-2
 - Remove info files.
 
