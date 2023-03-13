@@ -1,4 +1,4 @@
-%global binary_prefix cuda-
+%global _bindir %_bindir/cuda
 
 %global __provides_exclude_from (%{_libdir}|%{_libexecdir})/gcc/%{_target_platform}/%{version}/
 %global __requires_exclude_from (%{_libdir}|%{_libexecdir})/gcc/%{_target_platform}/%{version}/
@@ -74,8 +74,6 @@ This package adds Fortran support to the GNU Compiler Collection.
 mkdir objdir
 pushd objdir
 
-# Parameter '--enable-version-specific-runtime-libs' can't be used as it
-# prevents the proper include directories to be added by default to cc1/cc1plus
 %configure \
     --build=%{_target_platform} \
     --target=%{_target_platform} \
@@ -90,7 +88,6 @@ pushd objdir
     --enable-linker-build-id \
     --enable-threads=posix \
     --enable-version-specific-runtime-libs \
-    --program-prefix=%{?binary_prefix} \
     --with-system-zlib
 
 %make_build
@@ -112,7 +109,7 @@ rm -fr \
     %{buildroot}%{_bindir}/%{_target_platform}-* \
     %{buildroot}%{_datadir}/locale \
     %{buildroot}%{_infodir}/{dir,libgomp.info,libitm.info,cpp.info,cppinternals.info,gcc.info,gccinstall.info,gccint.info,gfortran.info}* \
-    %{buildroot}%{_mandir}/man7/{fsf-funding,gfdl,gpl}* \
+    %{buildroot}%{_mandir}/man* \
     %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{version}/include-fixed \
     %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{version}/install-tools \
     %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{version}/plugin \
@@ -123,24 +120,31 @@ rm -fr \
 
 find %{buildroot} -name "*.la" -delete
 
+# Always call nvcc with -ccbin parameter if this package is installed:
+mkdir -p %{buildroot}%{_sysconfdir}/profile.d/
+
+cat > %{buildroot}%{_sysconfdir}/profile.d/%{name}.sh <<EOF
+export NVCC_PREPEND_FLAGS='-ccbin %{_bindir}'
+EOF
+
+cat > %{buildroot}%{_sysconfdir}/profile.d/%{name}.csh <<EOF
+setenv NVCC_PREPEND_FLAGS '-ccbin %{_bindir}'
+EOF
+
 %files
-%{_bindir}/%{?binary_prefix}gcc
-%{_bindir}/%{?binary_prefix}gcc-ar
-%{_bindir}/%{?binary_prefix}gcc-nm
-%{_bindir}/%{?binary_prefix}gcc-ranlib
-%{_bindir}/%{?binary_prefix}gcov
-%{_bindir}/%{?binary_prefix}gcov-dump
-%{_bindir}/%{?binary_prefix}gcov-tool
-%{_bindir}/%{?binary_prefix}lto-dump
+%config(noreplace) %{_sysconfdir}/profile.d/%{name}.*sh
+%{_bindir}/gcc
+%{_bindir}/gcc-ar
+%{_bindir}/gcc-nm
+%{_bindir}/gcc-ranlib
+%{_bindir}/gcov
+%{_bindir}/gcov-dump
+%{_bindir}/gcov-tool
+%{_bindir}/lto-dump
 %dir %{_libdir}/gcc
 %dir %{_libdir}/gcc/%{_target_platform}
 %dir %{_libdir}/gcc/%{_target_platform}/%{version}
 %{_libdir}/gcc/%{_target_platform}/%{version}/crt*.o
-%{_mandir}/man1/%{?binary_prefix}gcc.1*
-%{_mandir}/man1/%{?binary_prefix}gcov.1*
-%{_mandir}/man1/%{?binary_prefix}gcov-dump.1*
-%{_mandir}/man1/%{?binary_prefix}gcov-tool.1*
-%{_mandir}/man1/%{?binary_prefix}lto-dump.1*
 %dir %{_libexecdir}/gcc
 %dir %{_libexecdir}/gcc/%{_target_platform}
 %dir %{_libexecdir}/gcc/%{_target_platform}/%{version}
@@ -167,11 +171,9 @@ find %{buildroot} -name "*.la" -delete
 %exclude %{_libdir}/gcc/%{_target_platform}/%{version}/include/ISO_Fortran_binding.h
 
 %files c++
-%{_bindir}/%{?binary_prefix}c++
-%{_bindir}/%{?binary_prefix}cpp
-%{_bindir}/%{?binary_prefix}g++
-%{_mandir}/man1/%{?binary_prefix}cpp.1*
-%{_mandir}/man1/%{?binary_prefix}g++.1*
+%{_bindir}/c++
+%{_bindir}/cpp
+%{_bindir}/g++
 %{_libexecdir}/gcc/%{_target_platform}/%{version}/cc1plus
 %{_libexecdir}/gcc/%{_target_platform}/%{version}/g++-mapper-server
 %{_libdir}/gcc/%{_target_platform}/%{version}/include/c++/
@@ -181,8 +183,7 @@ find %{buildroot} -name "*.la" -delete
 %{_datadir}/gcc-%{version}/python/libstdcxx
 
 %files gfortran
-%{_bindir}/%{?binary_prefix}gfortran
-%{_mandir}/man1/%{?binary_prefix}gfortran.1*
+%{_bindir}/gfortran
 %{_libdir}/gcc/%{_target_platform}/%{version}/finclude/
 %{_libdir}/gcc/%{_target_platform}/%{version}/include/ISO_Fortran_binding.h
 %{_libexecdir}/gcc/%{_target_platform}/%{version}/f951
@@ -191,6 +192,8 @@ find %{buildroot} -name "*.la" -delete
 %changelog
 * Mon Mar 13 2023 Simone Caronni <negativo17@gmail.com> - 12.2.1-1
 - Update to latest 12 snapshot.
+- Simplify installation. If the package is installed, nvcc is always executed
+  with -ccbin.
 
 * Mon Aug 08 2022 Peter Kovář <peter.kovar@reflexion.tv> - 11.3.0-2
 - Remove info files.
