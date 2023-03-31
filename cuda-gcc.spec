@@ -1,5 +1,3 @@
-%global _bindir %_bindir/cuda
-
 %global __provides_exclude_from (%{_libdir}|%{_libexecdir})/gcc/%{_target_platform}/%{version}/
 %global __requires_exclude_from (%{_libdir}|%{_libexecdir})/gcc/%{_target_platform}/%{version}/
 
@@ -11,7 +9,7 @@
 
 Name:           cuda-gcc
 Version:        12.2.1
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        GNU Compiler Collection CUDA compatibility package
 License:        GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
 URL:            http://gcc.gnu.org
@@ -78,13 +76,15 @@ pushd objdir
     --build=%{_target_platform} \
     --target=%{_target_platform} \
     --disable-bootstrap \
-    --disable-libquadmath \
-    --disable-libquadmath-support \
     --disable-libsanitizer \
     --disable-libssp \
     --disable-multilib \
     --enable-__cxa_atexit \
     --enable-languages=c,c++,fortran \
+%ifnarch aarch64
+    --enable-libquadmath \
+    --enable-libquadmath-support \
+%endif
     --enable-linker-build-id \
     --enable-threads=posix \
     --enable-version-specific-runtime-libs \
@@ -120,27 +120,32 @@ rm -fr \
 
 find %{buildroot} -name "*.la" -delete
 
+# Move binaries under bin/cuda:
+mv %{buildroot}%{_bindir} %{buildroot}/temp
+mkdir -p %{buildroot}%{_bindir}
+mv %{buildroot}/temp %{buildroot}%{_bindir}/cuda
+
 # Always call nvcc with -ccbin parameter if this package is installed:
 mkdir -p %{buildroot}%{_sysconfdir}/profile.d/
 
 cat > %{buildroot}%{_sysconfdir}/profile.d/%{name}.sh <<EOF
-export NVCC_PREPEND_FLAGS='-ccbin %{_bindir}'
+export NVCC_PREPEND_FLAGS='-ccbin %{_bindir}/cuda'
 EOF
 
 cat > %{buildroot}%{_sysconfdir}/profile.d/%{name}.csh <<EOF
-setenv NVCC_PREPEND_FLAGS '-ccbin %{_bindir}'
+setenv NVCC_PREPEND_FLAGS '-ccbin %{_bindir}/cuda'
 EOF
 
 %files
 %config(noreplace) %{_sysconfdir}/profile.d/%{name}.*sh
-%{_bindir}/gcc
-%{_bindir}/gcc-ar
-%{_bindir}/gcc-nm
-%{_bindir}/gcc-ranlib
-%{_bindir}/gcov
-%{_bindir}/gcov-dump
-%{_bindir}/gcov-tool
-%{_bindir}/lto-dump
+%{_bindir}/cuda/gcc
+%{_bindir}/cuda/gcc-ar
+%{_bindir}/cuda/gcc-nm
+%{_bindir}/cuda/gcc-ranlib
+%{_bindir}/cuda/gcov
+%{_bindir}/cuda/gcov-dump
+%{_bindir}/cuda/gcov-tool
+%{_bindir}/cuda/lto-dump
 %dir %{_libdir}/gcc
 %dir %{_libdir}/gcc/%{_target_platform}
 %dir %{_libdir}/gcc/%{_target_platform}/%{version}
@@ -167,13 +172,16 @@ EOF
 %{_libdir}/gcc/%{_target_platform}/%{version}/libgcov.a
 %{_libdir}/gcc/%{_target_platform}/%{version}/libgomp.*
 %{_libdir}/gcc/%{_target_platform}/%{version}/libitm.*
+%ifnarch aarch64
+%{_libdir}/gcc/%{_target_platform}/%{version}/libquadmath.*
+%endif
 %{_libdir}/gcc/%{_target_platform}/%{version}/include/
 %exclude %{_libdir}/gcc/%{_target_platform}/%{version}/include/ISO_Fortran_binding.h
 
 %files c++
-%{_bindir}/c++
-%{_bindir}/cpp
-%{_bindir}/g++
+%{_bindir}/cuda/c++
+%{_bindir}/cuda/cpp
+%{_bindir}/cuda/g++
 %{_libexecdir}/gcc/%{_target_platform}/%{version}/cc1plus
 %{_libexecdir}/gcc/%{_target_platform}/%{version}/g++-mapper-server
 %{_libdir}/gcc/%{_target_platform}/%{version}/include/c++/
@@ -183,13 +191,17 @@ EOF
 %{_datadir}/gcc-%{version}/python/libstdcxx
 
 %files gfortran
-%{_bindir}/gfortran
+%{_bindir}/cuda/gfortran
 %{_libdir}/gcc/%{_target_platform}/%{version}/finclude/
 %{_libdir}/gcc/%{_target_platform}/%{version}/include/ISO_Fortran_binding.h
 %{_libexecdir}/gcc/%{_target_platform}/%{version}/f951
 %{_libdir}/gcc/%{_target_platform}/%{version}/libgfortran.*
 
 %changelog
+* Fri Mar 31 2023 Simone Caronni <negativo17@gmail.com> - 12.2.1-2
+- Re-enable libquadmath support.
+- Fix rpm perl macro invocation during build and double bin path.
+
 * Mon Mar 13 2023 Simone Caronni <negativo17@gmail.com> - 12.2.1-1
 - Update to latest 12 snapshot.
 - Simplify installation. If the package is installed, nvcc is always executed
