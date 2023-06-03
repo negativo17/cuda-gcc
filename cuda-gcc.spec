@@ -1,15 +1,22 @@
 %global __provides_exclude_from (%{_libdir}|%{_libexecdir})/gcc/%{_target_platform}/%{version}/
 %global __requires_exclude_from (%{_libdir}|%{_libexecdir})/gcc/%{_target_platform}/%{version}/
 
-%global snapshot 12-20230311
+#global snapshot 12-20230311
 
 %global _lto_cflags %{nil}
 %global _warning_options -Wall -Wno-error=missing-include-dirs
 %global _configure ../configure
 
+%global _gnu %{nil}
+
+%global gcc_major 12
+
+# Move binaries under bin/cuda:
+%global _bindir %_prefix/bin/cuda
+
 Name:           cuda-gcc
-Version:        12.2.1
-Release:        2%{?dist}
+Version:        12.3.0
+Release:        1%{?dist}
 Summary:        GNU Compiler Collection CUDA compatibility package
 License:        GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
 URL:            http://gcc.gnu.org
@@ -88,6 +95,7 @@ pushd objdir
     --enable-linker-build-id \
     --enable-threads=posix \
     --enable-version-specific-runtime-libs \
+    --with-gcc-major-version-only \
     --with-system-zlib
 
 %make_build
@@ -99,105 +107,104 @@ pushd objdir
 %make_install
 popd
 
-mv %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{version}/include-fixed/*.h \
-    %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{version}/include/
+mv %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/include-fixed/*.h \
+    %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/include/
 
 mv %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{_lib}/* \
-    %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{version}/
+    %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/
 
 rm -fr \
     %{buildroot}%{_bindir}/%{_target_platform}-* \
     %{buildroot}%{_datadir}/locale \
-    %{buildroot}%{_infodir}/{dir,libgomp.info,libitm.info,cpp.info,cppinternals.info,gcc.info,gccinstall.info,gccint.info,gfortran.info}* \
+    %{buildroot}%{_infodir} \
     %{buildroot}%{_mandir}/man* \
-    %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{version}/include-fixed \
-    %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{version}/install-tools \
-    %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{version}/plugin \
+    %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/include-fixed \
+    %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/install-tools \
+    %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/plugin \
     %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{_lib}/ \
     %{buildroot}%{_libdir}/libcc1.so* \
-    %{buildroot}%{_libexecdir}/gcc/%{_target_platform}/%{version}/install-tools \
-    %{buildroot}%{_libexecdir}/gcc/%{_target_platform}/%{version}/plugin
+    %{buildroot}%{_libexecdir}/gcc/%{_target_platform}/%{gcc_major}/install-tools \
+    %{buildroot}%{_libexecdir}/gcc/%{_target_platform}/%{gcc_major}/plugin
 
 find %{buildroot} -name "*.la" -delete
-
-# Move binaries under bin/cuda:
-mv %{buildroot}%{_bindir} %{buildroot}/temp
-mkdir -p %{buildroot}%{_bindir}
-mv %{buildroot}/temp %{buildroot}%{_bindir}/cuda
 
 # Always call nvcc with -ccbin parameter if this package is installed:
 mkdir -p %{buildroot}%{_sysconfdir}/profile.d/
 
 cat > %{buildroot}%{_sysconfdir}/profile.d/%{name}.sh <<EOF
-export NVCC_PREPEND_FLAGS='-ccbin %{_bindir}/cuda'
+export NVCC_PREPEND_FLAGS='-ccbin %{_bindir}'
 EOF
 
 cat > %{buildroot}%{_sysconfdir}/profile.d/%{name}.csh <<EOF
-setenv NVCC_PREPEND_FLAGS '-ccbin %{_bindir}/cuda'
+setenv NVCC_PREPEND_FLAGS '-ccbin %{_bindir}'
 EOF
 
 %files
 %config(noreplace) %{_sysconfdir}/profile.d/%{name}.*sh
-%{_bindir}/cuda/gcc
-%{_bindir}/cuda/gcc-ar
-%{_bindir}/cuda/gcc-nm
-%{_bindir}/cuda/gcc-ranlib
-%{_bindir}/cuda/gcov
-%{_bindir}/cuda/gcov-dump
-%{_bindir}/cuda/gcov-tool
-%{_bindir}/cuda/lto-dump
+%{_bindir}/gcc
+%{_bindir}/gcc-ar
+%{_bindir}/gcc-nm
+%{_bindir}/gcc-ranlib
+%{_bindir}/gcov
+%{_bindir}/gcov-dump
+%{_bindir}/gcov-tool
+%{_bindir}/lto-dump
 %dir %{_libdir}/gcc
 %dir %{_libdir}/gcc/%{_target_platform}
-%dir %{_libdir}/gcc/%{_target_platform}/%{version}
-%{_libdir}/gcc/%{_target_platform}/%{version}/crt*.o
+%dir %{_libdir}/gcc/%{_target_platform}/%{gcc_major}
+%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/crt*.o
 %dir %{_libexecdir}/gcc
 %dir %{_libexecdir}/gcc/%{_target_platform}
-%dir %{_libexecdir}/gcc/%{_target_platform}/%{version}
-%{_libexecdir}/gcc/%{_target_platform}/%{version}/cc1
-%{_libexecdir}/gcc/%{_target_platform}/%{version}/collect2
-%{_libexecdir}/gcc/%{_target_platform}/%{version}/lto1
-%{_libexecdir}/gcc/%{_target_platform}/%{version}/lto-wrapper
-%{_libexecdir}/gcc/%{_target_platform}/%{version}/liblto_plugin.so*
+%dir %{_libexecdir}/gcc/%{_target_platform}/%{gcc_major}
+%{_libexecdir}/gcc/%{_target_platform}/%{gcc_major}/cc1
+%{_libexecdir}/gcc/%{_target_platform}/%{gcc_major}/collect2
+%{_libexecdir}/gcc/%{_target_platform}/%{gcc_major}/lto1
+%{_libexecdir}/gcc/%{_target_platform}/%{gcc_major}/lto-wrapper
+%{_libexecdir}/gcc/%{_target_platform}/%{gcc_major}/liblto_plugin.so*
 %ifarch ppc64le
-%{_libdir}/gcc/%{_target_platform}/%{version}/ecrti.o
-%{_libdir}/gcc/%{_target_platform}/%{version}/ecrtn.o
-%{_libdir}/gcc/%{_target_platform}/%{version}/ncrti.o
-%{_libdir}/gcc/%{_target_platform}/%{version}/ncrtn.o
+%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/ecrti.o
+%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/ecrtn.o
+%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/ncrti.o
+%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/ncrtn.o
 %endif
-%{_libdir}/gcc/%{_target_platform}/%{version}/libatomic.*
-%{_libdir}/gcc/%{_target_platform}/%{version}/libcaf_single.a
-%{_libdir}/gcc/%{_target_platform}/%{version}/libgcc.a
-%{_libdir}/gcc/%{_target_platform}/%{version}/libgcc_eh.a
-%{_libdir}/gcc/%{_target_platform}/%{version}/libgcc_s.*
-%{_libdir}/gcc/%{_target_platform}/%{version}/libgcov.a
-%{_libdir}/gcc/%{_target_platform}/%{version}/libgomp.*
-%{_libdir}/gcc/%{_target_platform}/%{version}/libitm.*
+%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libatomic.*
+%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libcaf_single.a
+%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libgcc.a
+%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libgcc_eh.a
+%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libgcc_s.*
+%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libgcov.a
+%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libgomp.*
+%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libitm.*
 %ifnarch aarch64
-%{_libdir}/gcc/%{_target_platform}/%{version}/libquadmath.*
+%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libquadmath.*
 %endif
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/
-%exclude %{_libdir}/gcc/%{_target_platform}/%{version}/include/ISO_Fortran_binding.h
+%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/include/
+%exclude %{_libdir}/gcc/%{_target_platform}/%{gcc_major}/include/ISO_Fortran_binding.h
 
 %files c++
-%{_bindir}/cuda/c++
-%{_bindir}/cuda/cpp
-%{_bindir}/cuda/g++
-%{_libexecdir}/gcc/%{_target_platform}/%{version}/cc1plus
-%{_libexecdir}/gcc/%{_target_platform}/%{version}/g++-mapper-server
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/c++/
-%{_libdir}/gcc/%{_target_platform}/%{version}/libstdc++.*
-%{_libdir}/gcc/%{_target_platform}/%{version}/libstdc++fs.a
-%{_libdir}/gcc/%{_target_platform}/%{version}/libsupc++.a
-%{_datadir}/gcc-%{version}/python/libstdcxx
+%{_bindir}/c++
+%{_bindir}/cpp
+%{_bindir}/g++
+%{_libexecdir}/gcc/%{_target_platform}/%{gcc_major}/cc1plus
+%{_libexecdir}/gcc/%{_target_platform}/%{gcc_major}/g++-mapper-server
+%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/include/c++/
+%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libstdc++.*
+%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libstdc++fs.a
+%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libsupc++.a
+%{_datadir}/gcc-%{gcc_major}/python/libstdcxx
 
 %files gfortran
-%{_bindir}/cuda/gfortran
-%{_libdir}/gcc/%{_target_platform}/%{version}/finclude/
-%{_libdir}/gcc/%{_target_platform}/%{version}/include/ISO_Fortran_binding.h
-%{_libexecdir}/gcc/%{_target_platform}/%{version}/f951
-%{_libdir}/gcc/%{_target_platform}/%{version}/libgfortran.*
+%{_bindir}/gfortran
+%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/finclude/
+%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/include/ISO_Fortran_binding.h
+%{_libexecdir}/gcc/%{_target_platform}/%{gcc_major}/f951
+%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libgfortran.*
 
 %changelog
+* Sat Jun 03 2023 Simone Caronni <negativo17@gmail.com> - 12.3.0-1
+- Update to 12.3.0.
+- Adjust binary move.
+
 * Fri Mar 31 2023 Simone Caronni <negativo17@gmail.com> - 12.2.1-2
 - Re-enable libquadmath support.
 - Fix rpm perl macro invocation during build and double bin path.
