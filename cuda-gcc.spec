@@ -104,7 +104,7 @@ mv %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{_lib}/* \
 rm -fr \
     %{buildroot}%{_bindir}/%{_target_platform}-* \
     %{buildroot}%{_datadir}/locale \
-    %{buildroot}%{_infodir}/{dir,libgomp.info,libitm.info,cpp.info,cppinternals.info,gcc.info,gccinstall.info,gccint.info,gfortran.info}* \
+    %{buildroot}%{_infodir}/{dir,libgomp.info,libitm.info,libquadmath.info,cpp.info,cppinternals.info,gcc.info,gccinstall.info,gccint.info,gfortran.info}* \
     %{buildroot}%{_mandir}/man* \
     %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{version}/include-fixed \
     %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{version}/install-tools \
