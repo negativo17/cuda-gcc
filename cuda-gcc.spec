@@ -1,14 +1,12 @@
 %global __provides_exclude_from (%{_libdir}|%{_libexecdir})/gcc/%{_target_platform}/%{version}/
 %global __requires_exclude_from (%{_libdir}|%{_libexecdir})/gcc/%{_target_platform}/%{version}/
 
-%global snapshot 12-20230311
-
 %global _lto_cflags %{nil}
 %global _warning_options -Wall -Wno-error=missing-include-dirs
 %global _configure ../configure
 
 Name:           cuda-gcc
-Version:        12.2.1
+Version:        12.3.0
 Release:        2%{?dist}
 Summary:        GNU Compiler Collection CUDA compatibility package
 License:        GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
