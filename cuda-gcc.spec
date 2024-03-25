@@ -1,5 +1,5 @@
-%global __provides_exclude_from (%{_libdir}|%{_libexecdir})/gcc/%{_target_platform}/%{version}/
-%global __requires_exclude_from (%{_libdir}|%{_libexecdir})/gcc/%{_target_platform}/%{version}/
+%global __provides_exclude_from (%{_libdir}|%{_libexecdir})/gcc/%{_target_platform}/%{gcc_major}/
+%global __requires_exclude_from (%{_libdir}|%{_libexecdir})/gcc/%{_target_platform}/%{gcc_major}/
 
 #global snapshot 12-20230311
 
@@ -16,7 +16,7 @@
 
 Name:           cuda-gcc
 Version:        12.3.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        GNU Compiler Collection CUDA compatibility package
 License:        GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
 URL:            http://gcc.gnu.org
@@ -201,6 +201,9 @@ EOF
 %{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libgfortran.*
 
 %changelog
+* Mon Mar 25 2024 Simone Caronni <negativo17@gmail.com> - 12.3.0-2
+- Fix library exclusions.
+
 * Sat Jun 03 2023 Simone Caronni <negativo17@gmail.com> - 12.3.0-1
 - Update to 12.3.0.
 - Adjust binary move.
