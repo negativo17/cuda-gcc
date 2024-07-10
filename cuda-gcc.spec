@@ -27,7 +27,7 @@ BuildArch:      aarch64 x86_64 ppc64le
 %if 0%{?snapshot:1}
 Source0:        https://gcc.gnu.org/pub/gcc/snapshots/%{snapshot}/gcc-%{snapshot}.tar.xz
 %else
-Source0:        http://ftp.gnu.org/gnu/gcc/gcc-%{version}/gcc-%{version}.tar.xz
+Source0:        https://ftp.gnu.org/gnu/gcc/gcc-%{version}/gcc-%{version}.tar.xz
 %endif
 
 BuildRequires:  flex
