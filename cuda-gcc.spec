@@ -9,14 +9,14 @@
 
 %global _gnu %{nil}
 
-%global gcc_major 12
+%global gcc_major 13
 
 # Move binaries under bin/cuda:
 %global _bindir %_prefix/bin/cuda
 
 Name:           cuda-gcc
-Version:        12.3.0
-Release:        2%{?dist}
+Version:        13.3.0
+Release:        1%{?dist}
 Summary:        GNU Compiler Collection CUDA compatibility package
 License:        GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
 URL:            http://gcc.gnu.org
@@ -189,6 +189,7 @@ EOF
 %{_libexecdir}/gcc/%{_target_platform}/%{gcc_major}/g++-mapper-server
 %{_libdir}/gcc/%{_target_platform}/%{gcc_major}/include/c++/
 %{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libstdc++.*
+%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libstdc++exp.a
 %{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libstdc++fs.a
 %{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libsupc++.a
 %{_datadir}/gcc-%{gcc_major}/python/libstdcxx
@@ -201,6 +202,9 @@ EOF
 %{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libgfortran.*
 
 %changelog
+* Wed Jul 10 2024 Simone Caronni <negativo17@gmail.com> - 13.3.0-1
+- Update to 13.3.0.
+
 * Mon Mar 25 2024 Simone Caronni <negativo17@gmail.com> - 12.3.0-2
 - Fix library exclusions.
 
