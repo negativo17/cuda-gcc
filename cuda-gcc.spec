@@ -1,207 +1,53 @@
-%global __provides_exclude_from (%{_libdir}|%{_libexecdir})/gcc/%{_target_platform}/%{gcc_major}/
-%global __requires_exclude_from (%{_libdir}|%{_libexecdir})/gcc/%{_target_platform}/%{gcc_major}/
-
-#global snapshot 12-20230311
-
-%global _lto_cflags %{nil}
-%global _warning_options -Wall -Wno-error=missing-include-dirs
-%global _configure ../configure
-
-%global _gnu %{nil}
-
 %global gcc_major 13
 
-# Move binaries under bin/cuda:
-%global _bindir %_prefix/bin/cuda
-
 Name:           cuda-gcc
-Version:        13.3.0
+Version:        13.3.1
 Release:        1%{?dist}
 Summary:        GNU Compiler Collection CUDA compatibility package
-License:        GPLv3+ and GPLv3+ with exceptions and GPLv2+ with exceptions and LGPLv2+ and BSD
+License:        BSD
 URL:            http://gcc.gnu.org
 
-# Platforms supported by CUDA:
-BuildArch:      aarch64 x86_64 ppc64le
+BuildArch:      noarch
 
-%if 0%{?snapshot:1}
-Source0:        https://gcc.gnu.org/pub/gcc/snapshots/%{snapshot}/gcc-%{snapshot}.tar.xz
-%else
-Source0:        https://ftp.gnu.org/gnu/gcc/gcc-%{version}/gcc-%{version}.tar.xz
-%endif
+Requires:       gcc%{gcc_major}-c++
 
-BuildRequires:  flex
-BuildRequires:  gcc
-BuildRequires:  gcc-c++
-BuildRequires:  gmp-devel >= 6.1.0
-BuildRequires:  isl-devel >= 0.16.1
-BuildRequires:  libmpc-devel >= 1.0.3
-BuildRequires:  mpfr-devel >= 3.1.4
-BuildRequires:  zlib-devel
-
-Requires:       binutils
-
-# Disable annobin
-%undefine _annotated_build
+Provides:       cuda-gcc = %{version}-%{release}
+Obsoletes:      cuda-gcc < %{version}-%{release}
+Provides:       cuda-gcc-c++ = %{version}-%{release}
+Obsoletes:      cuda-gcc-c++ < %{version}-%{release}
+Provides:       cuda-gcc-gfortran = %{version}-%{release}
+Obsoletes:      cuda-gcc-gfortran < %{version}-%{release}
 
 %description
-The %{name} package contains a CUDA supported version of the GNU Compiler
-Collection.
-
-%package c++
-Summary:        C++ support for GCC CUDA compatibility package
-Requires:       %{name} = %{version}-%{release}
-
-%description c++
-The %{name} package contains a CUDA supported version of the GNU Compiler
-Collection.
-
-This package adds C++ support to the GNU Compiler Collection.
-
-%package gfortran
-Summary:        Fortran support for GCC CUDA compatibility package
-Requires:       %{name} = %{version}-%{release}
-
-%description gfortran
-The %{name} package contains a CUDA supported version of the GNU Compiler
-Collection.
-
-This package adds Fortran support to the GNU Compiler Collection.
-
-%prep
-%if 0%{?snapshot:1}
-%autosetup -p1 -n gcc-%{snapshot}
-%else
-%autosetup -p1 -n gcc-%{version}
-%endif
-
-%build
-mkdir objdir
-pushd objdir
-
-%configure \
-    --build=%{_target_platform} \
-    --target=%{_target_platform} \
-    --disable-bootstrap \
-    --disable-libsanitizer \
-    --disable-libssp \
-    --disable-multilib \
-    --enable-__cxa_atexit \
-    --enable-languages=c,c++,fortran \
-%ifnarch aarch64
-    --enable-libquadmath \
-    --enable-libquadmath-support \
-%endif
-    --enable-linker-build-id \
-    --enable-threads=posix \
-    --enable-version-specific-runtime-libs \
-    --with-gcc-major-version-only \
-    --with-system-zlib
-
-%make_build
-
-popd
+The %{name} package contains scripts that are sourced in the environment to use
+the GCC compatibility packages when invoking NVCC.
 
 %install
-pushd objdir
-%make_install
-popd
-
-mv %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/include-fixed/*.h \
-    %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/include/
-
-mv %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{_lib}/* \
-    %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/
-
-rm -fr \
-    %{buildroot}%{_bindir}/%{_target_platform}-* \
-    %{buildroot}%{_datadir}/locale \
-    %{buildroot}%{_infodir} \
-    %{buildroot}%{_mandir}/man* \
-    %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/include-fixed \
-    %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/install-tools \
-    %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/plugin \
-    %{buildroot}%{_libdir}/gcc/%{_target_platform}/%{_lib}/ \
-    %{buildroot}%{_libdir}/libcc1.so* \
-    %{buildroot}%{_libexecdir}/gcc/%{_target_platform}/%{gcc_major}/install-tools \
-    %{buildroot}%{_libexecdir}/gcc/%{_target_platform}/%{gcc_major}/plugin
-
-find %{buildroot} -name "*.la" -delete
-
-# Always call nvcc with -ccbin parameter if this package is installed:
 mkdir -p %{buildroot}%{_sysconfdir}/profile.d/
 
 cat > %{buildroot}%{_sysconfdir}/profile.d/%{name}.sh <<EOF
-export NVCC_PREPEND_FLAGS='-ccbin %{_bindir}'
+export NVCC_CCBIN='g++-%{gcc_major}'
+
+# Alternatively you can use the following:
+export NVCC_PREPEND_FLAGS='-ccbin %{_bindir}/g++-%{gcc_major}'
 EOF
 
 cat > %{buildroot}%{_sysconfdir}/profile.d/%{name}.csh <<EOF
-setenv NVCC_PREPEND_FLAGS '-ccbin %{_bindir}'
+setenv NVCC_CCBIN 'g++-%{gcc_major}'
+
+# Alternatively you can use the following:
+setenv NVCC_PREPEND_FLAGS '-ccbin %{_bindir}/g++-%{gcc_major}'
 EOF
 
 %files
-%config(noreplace) %{_sysconfdir}/profile.d/%{name}.*sh
-%{_bindir}/gcc
-%{_bindir}/gcc-ar
-%{_bindir}/gcc-nm
-%{_bindir}/gcc-ranlib
-%{_bindir}/gcov
-%{_bindir}/gcov-dump
-%{_bindir}/gcov-tool
-%{_bindir}/lto-dump
-%dir %{_libdir}/gcc
-%dir %{_libdir}/gcc/%{_target_platform}
-%dir %{_libdir}/gcc/%{_target_platform}/%{gcc_major}
-%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/crt*.o
-%dir %{_libexecdir}/gcc
-%dir %{_libexecdir}/gcc/%{_target_platform}
-%dir %{_libexecdir}/gcc/%{_target_platform}/%{gcc_major}
-%{_libexecdir}/gcc/%{_target_platform}/%{gcc_major}/cc1
-%{_libexecdir}/gcc/%{_target_platform}/%{gcc_major}/collect2
-%{_libexecdir}/gcc/%{_target_platform}/%{gcc_major}/lto1
-%{_libexecdir}/gcc/%{_target_platform}/%{gcc_major}/lto-wrapper
-%{_libexecdir}/gcc/%{_target_platform}/%{gcc_major}/liblto_plugin.so*
-%ifarch ppc64le
-%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/ecrti.o
-%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/ecrtn.o
-%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/ncrti.o
-%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/ncrtn.o
-%endif
-%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libatomic.*
-%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libcaf_single.a
-%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libgcc.a
-%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libgcc_eh.a
-%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libgcc_s.*
-%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libgcov.a
-%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libgomp.*
-%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libitm.*
-%ifnarch aarch64
-%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libquadmath.*
-%endif
-%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/include/
-%exclude %{_libdir}/gcc/%{_target_platform}/%{gcc_major}/include/ISO_Fortran_binding.h
-
-%files c++
-%{_bindir}/c++
-%{_bindir}/cpp
-%{_bindir}/g++
-%{_libexecdir}/gcc/%{_target_platform}/%{gcc_major}/cc1plus
-%{_libexecdir}/gcc/%{_target_platform}/%{gcc_major}/g++-mapper-server
-%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/include/c++/
-%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libstdc++.*
-%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libstdc++exp.a
-%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libstdc++fs.a
-%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libsupc++.a
-%{_datadir}/gcc-%{gcc_major}/python/libstdcxx
-
-%files gfortran
-%{_bindir}/gfortran
-%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/finclude/
-%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/include/ISO_Fortran_binding.h
-%{_libexecdir}/gcc/%{_target_platform}/%{gcc_major}/f951
-%{_libdir}/gcc/%{_target_platform}/%{gcc_major}/libgfortran.*
+%config(noreplace) %{_sysconfdir}/profile.d/%{name}.csh
+%config(noreplace) %{_sysconfdir}/profile.d/%{name}.sh
 
 %changelog
+* Fri Dec 13 2024 Simone Caronni <negativo17@gmail.com> - 13.3.1-1
+- There is no need anymore for a custom GCC package, as Fedora ships gcc13 as a
+  compatibility package. Adjust accordingly. This package is just now a profile.
+
 * Wed Jul 10 2024 Simone Caronni <negativo17@gmail.com> - 13.3.0-1
 - Update to 13.3.0.
 
