@@ -2,7 +2,7 @@
 
 Name:           cuda-gcc
 Version:        13.3.1
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        GNU Compiler Collection CUDA compatibility package
 License:        BSD
 URL:            http://gcc.gnu.org
@@ -44,6 +44,9 @@ EOF
 %config(noreplace) %{_sysconfdir}/profile.d/%{name}.sh
 
 %changelog
+* Mon Dec 16 2024 Simone Caronni <negativo17@gmail.com> - 13.3.1-2
+- Trim changelog.
+
 * Fri Dec 13 2024 Simone Caronni <negativo17@gmail.com> - 13.3.1-1
 - There is no need anymore for a custom GCC package, as Fedora ships gcc13 as a
   compatibility package. Adjust accordingly. This package is just now a profile.
@@ -73,35 +76,3 @@ EOF
 * Tue May 17 2022 Simone Caronni <negativo17@gmail.com> - 11.3.0-1
 - Update to 11.3.0
 - Simplify SPEC file.
-
-* Fri Apr 30 2021 Simone Caronni <negativo17@gmail.com> - 9.3.0-1
-- Update to 9.3.0.
-- Disable LTO.
-- SPEC file clean up.
-
-* Sun Apr 07 2019 Simone Caronni <negativo17@gmail.com> - 8.3.0-1
-- Update to 8.3.0.
-
-* Thu Jan 03 2019 Simone Caronni <negativo17@gmail.com> - 7.3.1-2
-- Update to 7.3.1 snapshot with backported hardening features from Fedora 27.
-
-* Mon Aug 27 2018 Simone Caronni <negativo17@gmail.com> - 7.3.0-1
-- Update to 7.3.0.
-
-* Tue May 08 2018 Simone Caronni <negativo17@gmail.com> - 6.4.0-7
-- Fix build on Fedora 28 (thanks Rok Mandeljc).
-
-* Sun Dec 17 2017 Simone Caronni <negativo17@gmail.com> - 6.4.0-6
-- Remove GDB plugin.
-
-* Thu Dec 14 2017 Simone Caronni <negativo17@gmail.com> - 6.4.0-4
-- Cleanup.
-
-* Mon Dec 11 2017 Simone Caronni <negativo17@gmail.com> - 6.4.0-3
-- Enable shared objects.
-
-* Mon Dec 11 2017 Simone Caronni <negativo17@gmail.com> - 6.4.0-2
-- Disable quadmath support.
-
-* Tue Oct 10 2017 Simone Caronni <negativo17@gmail.com> - 6.4.0-1
-- First build.
