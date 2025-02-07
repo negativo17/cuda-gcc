@@ -2,7 +2,7 @@
 
 Name:           cuda-gcc
 Version:        13.3.1
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        GNU Compiler Collection CUDA compatibility package
 License:        BSD
 URL:            http://gcc.gnu.org
@@ -29,14 +29,14 @@ cat > %{buildroot}%{_sysconfdir}/profile.d/%{name}.sh <<EOF
 export NVCC_CCBIN='g++-%{gcc_major}'
 
 # Alternatively you can use the following:
-export NVCC_PREPEND_FLAGS='-ccbin %{_bindir}/g++-%{gcc_major}'
+# export NVCC_PREPEND_FLAGS='-ccbin %{_bindir}/g++-%{gcc_major}'
 EOF
 
 cat > %{buildroot}%{_sysconfdir}/profile.d/%{name}.csh <<EOF
 setenv NVCC_CCBIN 'g++-%{gcc_major}'
 
 # Alternatively you can use the following:
-setenv NVCC_PREPEND_FLAGS '-ccbin %{_bindir}/g++-%{gcc_major}'
+# setenv NVCC_PREPEND_FLAGS '-ccbin %{_bindir}/g++-%{gcc_major}'
 EOF
 
 %files
@@ -44,6 +44,9 @@ EOF
 %config(noreplace) %{_sysconfdir}/profile.d/%{name}.sh
 
 %changelog
+* Fri Feb 07 2025 Simone Caronni <negativo17@gmail.com> - 13.3.1-3
+- Comment out second option.
+
 * Mon Dec 16 2024 Simone Caronni <negativo17@gmail.com> - 13.3.1-2
 - Trim changelog.
 
