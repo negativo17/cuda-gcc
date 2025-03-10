@@ -1,8 +1,8 @@
-%global gcc_major 13
+%global gcc_major 14
 
 Name:           cuda-gcc
-Version:        13.3.1
-Release:        3%{?dist}
+Version:        14
+Release:        1%{?dist}
 Summary:        GNU Compiler Collection CUDA compatibility package
 License:        BSD
 URL:            http://gcc.gnu.org
@@ -44,6 +44,9 @@ EOF
 %config(noreplace) %{_sysconfdir}/profile.d/%{name}.sh
 
 %changelog
+* Mon Mar 10 2025 Simone Caronni <negativo17@gmail.com> - 14-1
+- Update to GCC 14.
+
 * Fri Feb 07 2025 Simone Caronni <negativo17@gmail.com> - 13.3.1-3
 - Comment out second option.
 
